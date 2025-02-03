@@ -24,13 +24,11 @@ CHROMEDRIVER_PATH = os.path.join(os.getcwd(), "chromedriver.exe")
 
 # ตั้งค่า Options สำหรับ Cloud (ป้องกัน error ที่เกี่ยวข้องกับ UI)
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+# chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
+# chrome_options.add_argument("--no-sandbox")
+# chrome_options.add_argument("--disable-dev-shm-usage")
 
 # ใช้ ChromeDriver จากไฟล์ที่เตรียมไว้
-service = Service(CHROMEDRIVER_PATH)
-driver = webdriver.Chrome(service=service, options=chrome_options)
 
 chrome_options.add_experimental_option("prefs", {
     "download.default_directory": os.path.join(os.getcwd(), f"{sys.argv[3]}_csv"),
@@ -38,8 +36,10 @@ chrome_options.add_experimental_option("prefs", {
     "directory_upgrade": True
 })
 
+service = Service(CHROMEDRIVER_PATH)
+driver = webdriver.Chrome(service=service, options=chrome_options)
 # using WebDriver Manager for manage ChromeDriver
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 # Function for calculate page for using max_pages
 # Maybe THIS ERROR
@@ -236,8 +236,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
                                     
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -321,8 +321,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -408,8 +408,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
                                 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -490,8 +490,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -574,8 +574,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -687,8 +687,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -774,8 +774,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -865,8 +865,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -959,8 +959,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -1059,8 +1059,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"C:\Program Files\YOLOApp\{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"C:\Program Files\YOLOApp\{sys.argv[3]}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
