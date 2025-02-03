@@ -1,0 +1,13 @@
+venv/
+env/
+ENV/
+.virtualenv/
+.venv/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.log
+*.tmp
+.env
+.env.*
