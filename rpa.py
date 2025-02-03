@@ -22,13 +22,10 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # ตั้งค่า Options สำหรับ Cloud (ป้องกัน error ที่เกี่ยวข้องกับ UI)
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
+chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--remote-debugging-port=9222")
-
-
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 chrome_options.add_experimental_option("prefs", {
     "download.default_directory": os.path.join(os.getcwd(), f"{sys.argv[3]}_csv"),
@@ -37,7 +34,7 @@ chrome_options.add_experimental_option("prefs", {
 })
 
 # using WebDriver Manager for manage ChromeDriver
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
 
 # Function for calculate page for using max_pages
 # Maybe THIS ERROR
