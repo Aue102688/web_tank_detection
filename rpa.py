@@ -5,6 +5,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 # selenium
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
 # from bs4 import BeautifulSoup
 import time
 import requests
@@ -18,14 +19,18 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-
+# กำหนด path ของ chromedriver.exe
+CHROMEDRIVER_PATH = os.path.join(os.getcwd(), "chromedriver.exe")
 
 # ตั้งค่า Options สำหรับ Cloud (ป้องกัน error ที่เกี่ยวข้องกับ UI)
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+# ใช้ ChromeDriver จากไฟล์ที่เตรียมไว้
+service = Service(CHROMEDRIVER_PATH)
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
 chrome_options.add_experimental_option("prefs", {
     "download.default_directory": os.path.join(os.getcwd(), f"{sys.argv[3]}_csv"),
@@ -34,7 +39,7 @@ chrome_options.add_experimental_option("prefs", {
 })
 
 # using WebDriver Manager for manage ChromeDriver
-
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
 # Function for calculate page for using max_pages
 # Maybe THIS ERROR
