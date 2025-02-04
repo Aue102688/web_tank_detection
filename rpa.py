@@ -24,12 +24,19 @@ CHROMEDRIVER_PATH = os.path.join(os.getcwd(), "chromedriver.exe")
 
 # ตั้งค่า Options สำหรับ Cloud (ป้องกัน error ที่เกี่ยวข้องกับ UI)
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+# chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
+# chrome_options.add_argument("--no-sandbox")
+# chrome_options.add_argument("--disable-dev-shm-usage")
+
+# เปลี่ยนจาก os.getcwd() เป็น path ที่เข้าถึงได้ง่าย
+BASE_SAVE_PATH = os.path.join(os.path.expanduser("~"), "Documents", "YOLOAppData")
+selected_date = sys.argv[3]  # รับค่า selected_date จาก app.py
+download_folder = os.path.join(BASE_SAVE_PATH, selected_date)
+os.makedirs(download_folder, exist_ok=True)  # สร้างโฟลเดอร์ถ้ายังไม่มี
+
 
 chrome_options.add_experimental_option("prefs", {
-    "download.default_directory": os.path.join(os.getcwd(), f"{sys.argv[3]}_csv"),
+    "download.default_directory": f"{download_folder}_csv",
     "download.prompt_for_download": False,
     "directory_upgrade": True
 })
@@ -53,7 +60,7 @@ def get_max_pages():
 try:
     # Open Website
     driver.get("https://pm-rsm.cpretailink.co.th/login")
-    output_dir = f"{sys.argv[3]}"
+    output_dir = download_folder
     time.sleep(2)
 
     # Put Username & Password then Enter Login
@@ -229,8 +236,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"{download_folder}/{number_store_text}"
                                     
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -314,8 +321,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"{download_folder}/{number_store_text}"
 
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -401,8 +408,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"{download_folder}/{number_store_text}"
                                 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -483,8 +490,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"{download_folder}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -567,8 +574,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"{download_folder}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -680,8 +687,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"{download_folder}/{number_store_text}"
 
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -767,8 +774,8 @@ try:
                                     time.sleep(5)
 
                                     # Create Folder of store before Downloading image
-                                    os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                    output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                    os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                    output_dir = f"{download_folder}/{number_store_text}"
 
                                     # Find element of Path div
                                     div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -858,8 +865,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"{download_folder}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -952,8 +959,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"{download_folder}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
@@ -1052,8 +1059,8 @@ try:
                                 time.sleep(5)
 
                                 # Create Folder of store before Downloading image
-                                os.makedirs(f"{sys.argv[3]}/{str(number_store_text)}", exist_ok=True)
-                                output_dir = f"{sys.argv[3]}/{number_store_text}"
+                                os.makedirs(f"{download_folder}/{str(number_store_text)}", exist_ok=True)
+                                output_dir = f"{download_folder}/{number_store_text}"
 
                                 # Find element of Path div
                                 div_elements_use = driver.find_elements(By.XPATH, "//div[contains(text(), 'ถังน้ำใช้')]")
