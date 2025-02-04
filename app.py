@@ -244,15 +244,25 @@ if not st.session_state["rpa_dataframe"].empty:
         
         st.dataframe(filtered_data.reset_index(drop=True))
 
-        
         if not filtered_data.empty:
             st.write("## Classification Distribution")
             class_counts = filtered_data["Class Predict"].value_counts()
+
             fig, ax = plt.subplots()
-            ax.pie((class_counts / len(filtered_data)) * 100, labels=class_counts.index, autopct="%1.1f%%", startangle=90, colors=plt.cm.Paired.colors)
+
+            if selected_class != "ALL" and selected_class in class_counts:
+                # ถ้าเลือก class เดียวให้แสดง Pie Chart เต็มวง และแสดงข้อความตรงกลาง
+                percentage = (class_counts[selected_class] / len(filtered_data)) * 100
+                ax.pie([1], labels=[""], startangle=90, colors=["#99c2ff"])  # ซ่อน label
+                ax.text(0, 0, f"{selected_class}\n{percentage:.1f}%", ha="center", va="center", fontsize=14)
+            else:
+                # ถ้าเลือก "ALL" ให้แสดง Pie Chart ปกติ
+                ax.pie((class_counts / len(filtered_data)) * 100, labels=class_counts.index, autopct="%1.1f%%", startangle=90, colors=plt.cm.Paired.colors)
+
             ax.axis("equal")
             st.pyplot(fig)
-        
+
+
         for result in st.session_state["rpa_results"]:
             # ตรวจสอบว่า result["Code"] อยู่ในโซนที่เลือก
             if selected_zone != "ALL":
