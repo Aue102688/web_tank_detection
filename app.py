@@ -32,9 +32,10 @@ st.markdown("<h1 style='text-align: center;'>Water Preventive Maintenance Classi
 st.sidebar.title("Settings")
 st.sidebar.write("Adjust settings as needed.")
 
+documents_path = os.path.join(os.path.expanduser("~"), "Documents", "YOLOAppData")
 # ฟังก์ชันสำหรับโหลดข้อมูลจาก CSV
 def load_csv_data(selected_date):
-    folder_path = f"{selected_date}_csv"
+    folder_path = os.path.join(documents_path, f"{selected_date}_csv")
     if os.path.exists(folder_path):
         csv_files = [f for f in os.listdir(folder_path) if f.endswith(".csv")]
         if csv_files:
@@ -42,7 +43,8 @@ def load_csv_data(selected_date):
             df = pd.read_csv(file_path)
             df = df.drop(columns=["ข้อเสนอแนะ", "ข้อเสนอแนะเพิ่มเติม"], errors='ignore')
             return df
-    st.error(f"No CSV file found in: {folder_path}")
+    # st.error(f"No CSV file found in: {folder_path}")
+    st.error(f"Please run RPA.")
     return pd.DataFrame()
 
 # Date
@@ -77,16 +79,19 @@ if "rpa_results" not in st.session_state:
 def reset_rpa_state():
     st.session_state["rpa_results"] = []
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-st.sidebar.write(f"Using device: {device}")
+torch.backends.cudnn.benchmark = True  # เพิ่มประสิทธิภาพเมื่อใช้ GPU
+torch.backends.cudnn.enabled = True
 
 
 # Load YOLOv8 Model only once
 def load_model():
     model_path = "best11_50_8.pt"
     model = YOLO(model_path)
-    model.to(device)  # ส่งโมเดลไปที่ GPU ถ้ามี
+    model.to("cuda" if torch.cuda.is_available() else "cpu") # ส่งโมเดลไปที่ GPU ถ้ามี
+    st.sidebar.write(f"YOLO is running on: {next(model.parameters()).device}")
     return model
+
+
 
 try:
     st.sidebar.write("Loading YOLOv8 model...")
@@ -163,10 +168,10 @@ def process_image_RPA(uploaded_file):
         return None, None
 
 if st.button("RPA"):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # documents_path = os.path.dirname(os.path.abspath(__file__))
     selected_folder_name = selected_date.strftime("%Y-%m-%d")
-    image_folder = os.path.join(script_dir, selected_folder_name)
-    csv_folder = os.path.join(script_dir, f"{selected_folder_name}_csv")
+    image_folder = os.path.join(documents_path, selected_folder_name)
+    csv_folder = os.path.join(documents_path, f"{selected_folder_name}_csv")
     
     if not (os.path.exists(image_folder) and os.path.exists(csv_folder)):
         try:

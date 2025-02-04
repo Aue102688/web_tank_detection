@@ -24,9 +24,9 @@ CHROMEDRIVER_PATH = os.path.join(os.getcwd(), "chromedriver.exe")
 
 # ตั้งค่า Options สำหรับ Cloud (ป้องกัน error ที่เกี่ยวข้องกับ UI)
 chrome_options = Options()
-# chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
-# chrome_options.add_argument("--no-sandbox")
-# chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
 
 # เปลี่ยนจาก os.getcwd() เป็น path ที่เข้าถึงได้ง่าย
 BASE_SAVE_PATH = os.path.join(os.path.expanduser("~"), "Documents", "YOLOAppData")
