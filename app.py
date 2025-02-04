@@ -12,6 +12,7 @@ import glob
 import sys
 import cv2
 import os
+import shutil
 
 # Custom CSS for input styles
 st.markdown(
@@ -215,6 +216,12 @@ if st.button("RPA"):
 if not st.session_state["rpa_dataframe"].empty:
     dataframe = st.session_state["rpa_dataframe"]
     csv_data = load_csv_data(selected_date)
+
+    # รีเซ็ตค่าใน session_state ก่อนการแสดงผลใหม่
+    if "rpa_results" in st.session_state:
+        st.session_state["rpa_results"] = []  # ลบข้อมูลเก่าที่เก็บไว้
+    if "rpa_dataframe" in st.session_state:
+        st.session_state["rpa_dataframe"] = pd.DataFrame()  # ลบข้อมูลเก่าใน DataFrame
     
     if not dataframe.empty and not csv_data.empty:
         merged_data = pd.merge(csv_data, dataframe, left_on="รหัสร้าน", right_on="Code", how="outer").drop(columns=["Code"])
