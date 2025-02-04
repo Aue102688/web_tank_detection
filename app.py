@@ -170,6 +170,12 @@ if st.button("RPA"):
     selected_folder_name = selected_date.strftime("%Y-%m-%d")
     image_folder = os.path.join(documents_path, selected_folder_name)
     csv_folder = os.path.join(documents_path, f"{selected_folder_name}_csv")
+
+    # รีเซ็ตค่าใน session_state ก่อนการแสดงผลใหม่
+    if "rpa_results" in st.session_state:
+        st.session_state["rpa_results"] = []  # ลบข้อมูลเก่าที่เก็บไว้
+    if "rpa_dataframe" in st.session_state:
+        st.session_state["rpa_dataframe"] = pd.DataFrame()  # ลบข้อมูลเก่าใน DataFrame
     
     if not (os.path.exists(image_folder) and os.path.exists(csv_folder)):
         try:
