@@ -80,7 +80,7 @@ row = get_row_day(day, column, selected_lday)
 st.write(f"คุณเลือกวันที่: {selected_fday} ถึงวันที่ {selected_lday}")
 # st.write(f"ตำแหน่งในตาราง: วันที่ {day}, แถวที่ {row}, คอลัมน์ {column}")
 
-period_day = selected_lday.day - selected_fday.day
+period_day = (selected_lday.day - selected_fday.day)
 
 st.write(f"ระยะวันทั้งหมด {period_day}")
 
@@ -192,40 +192,21 @@ if st.button("RPA"):
         st.session_state["rpa_results"] = []  # ลบข้อมูลเก่าที่เก็บไว้
     if "rpa_dataframe" in st.session_state:
         st.session_state["rpa_dataframe"] = pd.DataFrame()  # ลบข้อมูลเก่าใน DataFrame
-    
-    # if not (os.path.exists(image_folder) and os.path.exists(csv_folder)):
-    #     try:
-    #         st.sidebar.write("Running RPA script to fetch images...")
-    #         result = subprocess.run([
-    #             "python", "rpa.py", str(row), str(column), str(selected_fday), 
-    #             str(selected_fday.month), str(selected_fday.year)
-    #         ], capture_output=True, text=True)
-            
-    #         if result.returncode == 0:
-    #             st.sidebar.success("RPA script completed successfully!")
-    #         else:
-    #             st.error(f"RPA script failed. Error: {result.stderr}")
-    #             st.stop()
-    #     except Exception as e:
-    #         st.error(f"An unexpected error occurred: {e}")
-    #         st.stop()
-
-    if not (os.path.exists(image_folder) and os.path.exists(csv_folder)):
-        try:
-            st.sidebar.write("Running RPA script to fetch images...")
-            result = subprocess.run([
-                "python", "rpa.edit.py", str(row), str(column), str(), 
-                str(selected_fday.month), str(selected_fday.year),str(period_day)
-            ], capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                st.sidebar.success("RPA script completed successfully!")
-            else:
-                st.error(f"RPA script failed. Error: {result.stderr}")
-                st.stop()
-        except Exception as e:
-            st.error(f"An unexpected error occurred: {e}")
+    try:
+        st.sidebar.write("Running RPA script to fetch images...")
+        result = subprocess.run([
+            "python", "rpa_edit.py", str(row), str(column), str(), 
+            str(selected_fday.month), str(selected_fday.year),str(period_day)
+        ], capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            st.sidebar.success("RPA script completed successfully!")
+        else:
+            st.error(f"RPA script failed. Error: {result.stderr}")
             st.stop()
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
+        st.stop()
     
     # โหลดข้อมูลหลังจากรัน RPA script
     dataframe = load_csv_data(selected_fday)
