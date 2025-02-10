@@ -81,6 +81,10 @@ st.write(f"คุณเลือกวันที่: {selected_fday} ถึง
 # st.write(f"ตำแหน่งในตาราง: วันที่ {day}, แถวที่ {row}, คอลัมน์ {column}")
 
 period_day = (selected_lday.day - selected_fday.day)
+if period_day == 0:
+    period_day = 1
+else :
+    period_day = period_day
 
 st.write(f"ระยะวันทั้งหมด {period_day}")
 
@@ -182,21 +186,22 @@ def process_image_RPA(uploaded_file):
     # How to get folder for display
 
 if st.button("RPA"):
-    # documents_path = os.path.dirname(os.path.abspath(__file__))
-    selected_folder_name = selected_fday.strftime("%Y-%m-%d")
-    image_folder = os.path.join(documents_path, selected_folder_name)
-    csv_folder = os.path.join(documents_path, f"{selected_folder_name}_csv")
-
     # รีเซ็ตค่าใน session_state ก่อนการแสดงผลใหม่
     if "rpa_results" in st.session_state:
         st.session_state["rpa_results"] = []  # ลบข้อมูลเก่าที่เก็บไว้
     if "rpa_dataframe" in st.session_state:
         st.session_state["rpa_dataframe"] = pd.DataFrame()  # ลบข้อมูลเก่าใน DataFrame
+
+    # คำนวณช่วงวันที่ที่ต้องการดึงข้อมูล
+    date_range = pd.date_range(selected_fday, selected_lday)
+    image_folders = []
+    csv_files = []
+    
     try:
         st.sidebar.write("Running RPA script to fetch images...")
         result = subprocess.run([
-            "python", "rpa_edit.py", str(row), str(column), str(), 
-            str(selected_fday.month), str(selected_fday.year),str(period_day)
+            "python", "rpa_edit.py", str(row), str(column), "", 
+            str(selected_fday.month), str(selected_fday.year), str(period_day)
         ], capture_output=True, text=True)
         
         if result.returncode == 0:
@@ -207,18 +212,34 @@ if st.button("RPA"):
     except Exception as e:
         st.error(f"An unexpected error occurred: {e}")
         st.stop()
+
+    for date in date_range:
+        date_folder = os.path.join(documents_path, "IMAGE_file", date.strftime("%Y-%m-%d"))
+        csv_file = os.path.join(documents_path, "CSV_file", f"{date.strftime('%Y-%m-%d')}_csv.csv")
+        
+        if os.path.exists(date_folder):
+            shop_folders = [os.path.join(date_folder, shop) for shop in os.listdir(date_folder) if os.path.isdir(os.path.join(date_folder, shop))]
+            image_folders.extend(shop_folders)
+        
+        if os.path.exists(csv_file):
+            csv_files.append(csv_file)
+    
+    if not image_folders:
+        st.error("No images found in the selected date range.")
+        st.stop()
+    
+    if not csv_files:
+        st.error("No CSV files found in the selected date range.")
+        st.stop()
     
     # โหลดข้อมูลหลังจากรัน RPA script
-    dataframe = load_csv_data(selected_fday)
-    
-    if os.path.exists(image_folder):
-        image_files = [os.path.join(root, file) for root, _, files in os.walk(image_folder) for file in files if file.endswith(".jpg")]
-        reset_rpa_state()
+    for shop_folder in image_folders:
+        image_files = [os.path.join(shop_folder, file) for file in os.listdir(shop_folder) if file.lower().endswith(".jpg")]
         
         if image_files:
             for image_file in image_files:
                 filename = os.path.splitext(os.path.basename(image_file))[0]
-                code = os.path.basename(os.path.dirname(image_file))
+                code = os.path.basename(shop_folder)
                 detected_image, detection_info = process_image_RPA(image_file)
                 
                 if detected_image and isinstance(detection_info, list) and detection_info:
@@ -227,91 +248,103 @@ if st.button("RPA"):
                         new_row = pd.DataFrame([{ "Filename": filename, "Code": code, "Class Predict": cls, "Confidence": confidence }])
                         st.session_state["rpa_dataframe"] = pd.concat([st.session_state["rpa_dataframe"], new_row], ignore_index=True)
     
-    st.write("RPA process completed. Data is ready for viewing.")
+    # โหลดและรวมข้อมูลจากไฟล์ CSV ทั้งหมด
+    combined_csv_data = pd.DataFrame()
+    for csv_file in csv_files:
+        csv_data = pd.read_csv(csv_file)
+        combined_csv_data = pd.concat([combined_csv_data, csv_data], ignore_index=True)
     
-# แสดงผลลัพธ์
+    st.session_state["rpa_dataframe"] = combined_csv_data
+    
+    st.write("RPA process completed. Data is ready for viewing.")
+    # แสดงผลลัพธ์
 if not st.session_state["rpa_dataframe"].empty:
     dataframe = st.session_state["rpa_dataframe"]
-    csv_data = load_csv_data(selected_fday)
+    csv_data = load_csv_data(selected_date)
     
     if not dataframe.empty and not csv_data.empty:
         merged_data = pd.merge(csv_data, dataframe, left_on="รหัสร้าน", right_on="Code", how="outer").drop(columns=["Code"])
+        # เพิ่ม dropdown สำหรับเลือกวันที่
+        unique_dates = ["ALL"] + sorted(combined_csv_data["แผนเข้างาน"].dropna().astype(str).unique().tolist())
+        selected_date = st.selectbox("Select Date", unique_dates)
         
-        # เพิ่ม dropdown สำหรับเลือกโซนที่จุดนี้
-        unique_zones = ["ALL"] + sorted(merged_data["โซน"].dropna().unique().tolist())
+        # กรองข้อมูลตามวันที่ที่เลือก
+        filtered_data = combined_csv_data.copy()
+        if selected_date != "ALL":
+            filtered_data = filtered_data[filtered_data["วันที่"] == selected_date]
+        
+        # เพิ่ม dropdown สำหรับเลือกโซน
+        unique_zones = ["ALL"] + sorted(filtered_data["โซน"].dropna().unique().tolist())
         selected_zone = st.selectbox("Select Zone", unique_zones)
         
-        # กรองข้อมูลตามโซนที่เลือก
-        filtered_data = merged_data.copy()
         if selected_zone != "ALL":
             filtered_data = filtered_data[filtered_data["โซน"] == selected_zone]
         
-        # อัปเดตรายการรหัสร้านตามโซนที่เลือก
+        # เพิ่ม dropdown สำหรับเลือกรหัสร้าน
         unique_codes = ["ALL"] + sorted(filtered_data["รหัสร้าน"].dropna().unique().tolist())
         selected_code = st.selectbox("Select Code", unique_codes)
         
-        # กรองข้อมูลตามรหัสร้านที่เลือก
         if selected_code != "ALL":
             filtered_data = filtered_data[filtered_data["รหัสร้าน"] == selected_code]
         
-        # อัปเดตรายการ Class Predict ตามรหัสร้านที่เลือก
+        # เพิ่ม dropdown สำหรับเลือก Class Predict
         unique_classes = ["ALL"] + sorted(filtered_data["Class Predict"].dropna().unique().tolist())
         selected_class = st.selectbox("Select Class", unique_classes)
         
-        # กรองข้อมูลตาม Class Predict ที่เลือก
         if selected_class != "ALL":
             filtered_data = filtered_data[filtered_data["Class Predict"] == selected_class]
         
         st.dataframe(filtered_data.reset_index(drop=True))
 
-        if not filtered_data.empty:
-            st.write("## Classification Distribution")
-            class_counts = filtered_data["Class Predict"].value_counts()
 
-            fig, ax = plt.subplots()
+    if not filtered_data.empty:
+        st.write("## Classification Distribution")
+        class_counts = filtered_data["Class Predict"].value_counts()
 
-            if selected_class != "ALL" and selected_class in class_counts:
-                # ถ้าเลือก class เดียวให้แสดง Pie Chart เต็มวง และแสดงข้อความตรงกลาง
-                percentage = (class_counts[selected_class] / len(filtered_data)) * 100
-                ax.pie([1], labels=[""], startangle=90, colors=["#99c2ff"])  # ซ่อน label
-                ax.text(0, 0, f"{selected_class}\n{percentage:.1f}%", ha="center", va="center", fontsize=14)
-            else:
-                # ถ้าเลือก "ALL" ให้แสดง Pie Chart ปกติ
-                ax.pie((class_counts / len(filtered_data)) * 100, labels=class_counts.index, autopct="%1.1f%%", startangle=90, colors=plt.cm.Paired.colors)
+        fig, ax = plt.subplots()
 
-            ax.axis("equal")
-            st.pyplot(fig)
+        if selected_class != "ALL" and selected_class in class_counts:
+            # ถ้าเลือก class เดียวให้แสดง Pie Chart เต็มวง และแสดงข้อความตรงกลาง
+            percentage = (class_counts[selected_class] / len(filtered_data)) * 100
+            ax.pie([1], labels=[""], startangle=90, colors=["#99c2ff"])  # ซ่อน label
+            ax.text(0, 0, f"{selected_class}\n{percentage:.1f}%", ha="center", va="center", fontsize=14)
+        else:
+            # ถ้าเลือก "ALL" ให้แสดง Pie Chart ปกติ
+            ax.pie((class_counts / len(filtered_data)) * 100, labels=class_counts.index, autopct="%1.1f%%", startangle=90, colors=plt.cm.Paired.colors)
+
+        ax.axis("equal")
+        st.pyplot(fig)
 
 
-        for result in st.session_state["rpa_results"]:
-            # ตรวจสอบว่า result["Code"] อยู่ในโซนที่เลือก
-            if selected_zone != "ALL":
-                if result["Code"] not in filtered_data["รหัสร้าน"].values:
-                    continue
-
-            # กรองตามรหัสร้าน
-            if selected_code != "ALL" and result["Code"] != selected_code:
+    for result in st.session_state["rpa_results"]:
+        # ตรวจสอบว่า result["Code"] อยู่ในโซนที่เลือก
+        if selected_zone != "ALL":
+            if result["Code"] not in filtered_data["รหัสร้าน"].values:
                 continue
 
-            # กรองตามประเภทการตรวจจับ
-            if selected_class != "ALL" and not any(cls == selected_class for cls, _ in result["Detection Info"]):
-                continue
-            st.markdown(f"#### รหัสร้าน: {result['Code']}")
-            st.markdown(f"#### Detected Image: {result['Filename']}")
-            st.image(result['Image File'], use_container_width=True)
-            detection_text = "<br>".join([f"{cls}" for cls, _ in result["Detection Info"]])
-            additional_text = {
-                "correct": "Your PM work image meets the standard.",
-                "check": "Your PM work image is under review. Multiple types detected.",
-                "incorrect": "Your PM work image doesn't meet the standard. Please check for cleanliness.",
-                "fail": "Your PM work image doesn't meet the standard. Please check for cleanliness.",
-                "undetected": "No detectable objects found in the image. Please recheck the image."
-            }.get(detection_text, "Unknown status")
-            st.markdown(
-                f'<div style="border: 2px solid black; padding: 10px; background-color: #f0f0f0; text-align: center;">'
-                f'<h2 style="color: black">{detection_text}</h2>'
-                f'<p style="color: black">{additional_text}</p>'
-                f'</div><br><br>', unsafe_allow_html=True
-            )
+        # กรองตามรหัสร้าน
+        if selected_code != "ALL" and result["Code"] != selected_code:
+            continue
+
+        # กรองตามประเภทการตรวจจับ
+        if selected_class != "ALL" and not any(cls == selected_class for cls, _ in result["Detection Info"]):
+            continue
+        st.markdown(f"#### รหัสร้าน: {result['Code']}")
+        st.markdown(f"#### Detected Image: {result['Filename']}")
+        st.image(result['Image File'], use_container_width=True)
+        detection_text = "<br>".join([f"{cls}" for cls, _ in result["Detection Info"]])
+        additional_text = {
+            "correct": "Your PM work image meets the standard.",
+            "check": "Your PM work image is under review. Multiple types detected.",
+            "incorrect": "Your PM work image doesn't meet the standard. Please check for cleanliness.",
+            "fail": "Your PM work image doesn't meet the standard. Please check for cleanliness.",
+            "undetected": "No detectable objects found in the image. Please recheck the image."
+        }.get(detection_text, "Unknown status")
+        st.markdown(
+            f'<div style="border: 2px solid black; padding: 10px; background-color: #f0f0f0; text-align: center;">'
+            f'<h2 style="color: black">{detection_text}</h2>'
+            f'<p style="color: black">{additional_text}</p>'
+            f'</div><br><br>', unsafe_allow_html=True
+        )
 
 st.markdown("<div class='footer'>Developed by Your Name | Contact: satit102688@gmail.com</div>", unsafe_allow_html=True)
