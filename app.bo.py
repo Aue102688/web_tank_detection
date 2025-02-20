@@ -106,9 +106,6 @@ except Exception as e:
     st.sidebar.error(f"Error loading model: {e}")
     st.stop()
 
-
-# Func - For process pull images
-# This Func for pull images many folder
 def process_image_RPA(uploaded_file):
     try:
         # Open the uploaded image and convert to RGB
@@ -143,22 +140,22 @@ def process_image_RPA(uploaded_file):
 
         # Handle cases where detection_info is empty
         if not detection_info:
-            final_class = "check"
+            final_class = "not sure"
             final_confidence = 0
         else:
             # Determine final class based on conditions
             detected_classes = set(class_count.keys())
             if "correct" in detected_classes and len(detected_classes) > 1:
                 # Condition 1: If "correct" exists with other classes
-                final_class = "check"
+                final_class = "not sure"
                 final_confidence = max_confidence["correct"]
             elif "correct" in detected_classes and max_confidence["correct"] < 80:
                 # New Condition: If "correct" confidence is less than 80%
-                final_class = "check"
+                final_class = "not sure"
                 final_confidence = max_confidence["correct"]
             elif "incorrect" in detected_classes and max_confidence["incorrect"] < 80:
                 # New Condition: If "correct" confidence is less than 80%
-                final_class = "check"
+                final_class = "not sure"
                 final_confidence = max_confidence["incorrect"]
             elif len(detected_classes) > 1:
                 # Condition 2: If there is no "correct" but multiple classes exist
@@ -179,13 +176,10 @@ documents_path = os.path.join(os.path.expanduser("~"), "Documents", "YOLOAppData
 
 # Part - For process RPA just click
 if st.button("RPA"):
-    # documents_path = os.path.dirname(os.path.abspath(__file__))
-    # Folder name for str date
-    selected_folder_name = selected_fday.strftime("%Y-%m-%d")
-    # Var image & csv FOLDER
-    # folder branch code ??
+    start_date = selected_fday.strftime("%Y-%m-%d")
+    end_date = selected_lday.strftime("%Y-%m-%d")
     image_folder = os.path.join(documents_path, "IMAGE_file")
-    csv_folder = os.path.join(documents_path, "CSV_file" , f"{selected_folder_name}_csv")
+    csv_folder = os.path.join(documents_path, "CSV_file" , f"{start_date}_csv")
 
     # Reset value by session_state Before display again
     if "rpa_results" in st.session_state:
@@ -193,8 +187,14 @@ if st.button("RPA"):
     if "rpa_dataframe" in st.session_state:
         st.session_state["rpa_dataframe"] = pd.DataFrame()  
 
+    # Check if all required date folders exist
+    required_dates = [(selected_fday + datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range((selected_lday - selected_fday).days + 1)]
+    existing_dates = set(os.listdir(image_folder)) if os.path.exists(image_folder) else set()
+    missing_dates = [date for date in required_dates if date not in existing_dates]
+
     # call using RPA_file that process it by subprocess
-    if not (os.path.exists(image_folder) or os.path.exists(csv_folder)):
+    # if not (os.path.exists(image_folder) or os.path.exists(csv_folder)):
+    if missing_dates:
         try:
             st.sidebar.write("Running RPA script to fetch images...")
             result = subprocess.run([
@@ -222,17 +222,14 @@ if st.button("RPA"):
                 if file.endswith(".jpg"):  # เลือกเฉพาะไฟล์รูปภาพ
                     folder_paths.append(os.path.join(root, file))
 
-        # Check - Have picture in folder or not ?
+        # not sure - Have picture in folder or not ?
         if folder_paths:
             st.session_state["rpa_results"] = []
             st.session_state["rpa_dataframe"] = pd.DataFrame()
 
             for image_file in folder_paths:
-                # Pull name-branch-code
                 filename = os.path.splitext(os.path.basename(image_file))[0]
                 code = os.path.basename(os.path.dirname(image_file))
-
-                # Call function process image RPA
                 detected_image, detection_info = process_image_RPA(image_file) 
 
                 # Save value in session_state
@@ -246,13 +243,14 @@ if st.button("RPA"):
 
                     # Add data in DataFrame
                     for cls, confidence in detection_info:
-                        new_row = pd.DataFrame([{
-                            "Filename": filename,
-                            "Code": code,
-                            "Class Predict": cls,
-                            "Confidence": confidence
-                        }])
-                        st.session_state["rpa_dataframe"] = pd.concat([st.session_state["rpa_dataframe"], new_row], ignore_index=True)
+                        if cls != "fail":
+                            new_row = pd.DataFrame([{
+                                "Filename": filename,
+                                "Code": code,
+                                "Class Predict": cls,
+                                "Confidence": confidence
+                            }])
+                            st.session_state["rpa_dataframe"] = pd.concat([st.session_state["rpa_dataframe"], new_row], ignore_index=True)
         
     st.write("RPA process completed. Data is ready for viewing.")
     
@@ -266,78 +264,65 @@ if not st.session_state["rpa_dataframe"].empty:
         
         unique_date = ["ALL"] + sorted(merged_data["แผนเข้างาน"].dropna().unique().tolist())
         selected_date = st.selectbox("Select Date", unique_date)
-
-        # Filter data(zone) from zone that user select
         filtered_data = merged_data.copy()
         if selected_date != "ALL":
             filtered_data = filtered_data[filtered_data["แผนเข้างาน"] == selected_date]
 
-        unique_zones = ["ALL"] + sorted(merged_data["โซน"].dropna().unique().tolist())
+        # อัปเดตค่า Select Zone ให้เปลี่ยนไปตามวันที่ที่เลือก
+        unique_zones = ["ALL"] + sorted(filtered_data["โซน"].dropna().unique().tolist())
         selected_zone = st.selectbox("Select Zone", unique_zones)
-
         if selected_zone != "ALL":
             filtered_data = filtered_data[filtered_data["โซน"] == selected_zone]
         
-        # Filter data(branch-code) from branch-code that user select 1
         unique_codes = ["ALL"] + sorted(filtered_data["รหัสร้าน"].dropna().unique().tolist())
         selected_code = st.selectbox("Select Code", unique_codes)
-        
-        # Filter data(branch-code) from branch-code that user select 2
         if selected_code != "ALL":
             filtered_data = filtered_data[filtered_data["รหัสร้าน"] == selected_code]
         
-        # Update task Class Predict by branch-code that user select
-        unique_classes = ["ALL"] + sorted(filtered_data["Class Predict"].dropna().unique().tolist())
+        unique_classes = ["ALL"] + sorted([cls for cls in filtered_data["Class Predict"].dropna().unique() if cls != "fail"])
         selected_class = st.selectbox("Select Class", unique_classes)
-        
-        # Filter by Class Predict that user choose
         if selected_class != "ALL":
             filtered_data = filtered_data[filtered_data["Class Predict"] == selected_class]
         
-        # FOR WHAT ???
         st.dataframe(filtered_data.reset_index(drop=True))
 
-        # FOR WHAT ???
         if not filtered_data.empty:
             st.write("## Classification Distribution")
-            class_counts = filtered_data["Class Predict"].value_counts()
-
+            filtered_pie_data = filtered_data[filtered_data["Class Predict"] != "fail"]
+            class_counts = filtered_pie_data["Class Predict"].value_counts()
             fig, ax = plt.subplots()
-
             if selected_class != "ALL" and selected_class in class_counts:
-                # If choose a class to display Full-Pie Chart and display text center
-                percentage = (class_counts[selected_class] / len(filtered_data)) * 100
-                ax.pie([1], labels=[""], startangle=90, colors=["#99c2ff"])  # hide label
+                percentage = (class_counts[selected_class] / len(filtered_pie_data)) * 100
+                ax.pie([1], labels=[""], startangle=90, colors=["#99c2ff"])
                 ax.text(0, 0, f"{selected_class}\n{percentage:.1f}%", ha="center", va="center", fontsize=14)
             else:
-                # If choose "ALL" to display Normal-Pie Chart
-                ax.pie((class_counts / len(filtered_data)) * 100, labels=class_counts.index, autopct="%1.1f%%", startangle=90, colors=plt.cm.Paired.colors)
-
+                ax.pie((class_counts / len(filtered_pie_data)) * 100, labels=class_counts.index, autopct="%1.1f%%", startangle=90, colors=plt.cm.Paired.colors)
             ax.axis("equal")
             st.pyplot(fig)
+        # เชื่อมข้อมูล rpa_results กับ rpa_dataframe เพื่อให้มี "แผนเข้างาน"
+        code_to_date = dict(zip(merged_data["รหัสร้าน"], merged_data["แผนเข้างาน"]))
 
-
+        filtered_results = []
         for result in st.session_state["rpa_results"]:
-            
-            # Check result["Code"] in the selected zone
-            if selected_zone != "ALL":
-                if result["Code"] not in filtered_data["รหัสร้าน"].values:
-                    continue
+            result_date = code_to_date.get(result["Code"], "ไม่มีข้อมูล")  # ดึงค่าหรือให้ "ไม่มีข้อมูล" ถ้าไม่มีใน dict
+            if (
+                (selected_date == "ALL" or result_date == selected_date) and
+                (selected_zone == "ALL" or result["Code"] in filtered_data["รหัสร้าน"].values) and
+                (selected_code == "ALL" or result["Code"] == selected_code) and
+                (selected_class == "ALL" or any(cls == selected_class for cls, _ in result["Detection Info"]))
+            ):
+                if any(cls != "fail" for cls, _ in result["Detection Info"]):
+                    filtered_results.append(result)
 
-            # Filter by branch-code
-            if selected_code != "ALL" and result["Code"] != selected_code:
-                continue
-
-            # Filter type detected image
-            if selected_class != "ALL" and not any(cls == selected_class for cls, _ in result["Detection Info"]):
-                continue
+        for result in filtered_results:
+            # st.markdown(f"#### วันที่: {result['Date']}")
             st.markdown(f"#### รหัสร้าน: {result['Code']}")
             st.markdown(f"#### Detected Image: {result['Filename']}")
             st.image(result['Image File'], use_container_width=True)
             detection_text = "<br>".join([f"{cls}" for cls, _ in result["Detection Info"]])
             additional_text = {
                 "correct": "Your PM work image meets the standard.",
-                "check": "Your PM work image is under review. Multiple types detected.",
+                "not sure": "Your PM work image is under review. Multiple types detected.",
                 "incorrect": "Your PM work image doesn't meet the standard. Please check for cleanliness.",
                 "fail": "Your PM work image doesn't meet the standard. Please check for cleanliness.",
                 "undetected": "No detectable objects found in the image. Please recheck the image."
