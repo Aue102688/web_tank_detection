@@ -14,34 +14,17 @@ import math
 import sys
 import io
 
-# New Task
-# Select Period
-# By get period_count from app by calculation of APP.py
-
-# sys.argv[1] tr
-# sys.argv[2] td
-# sys.argv[4] month
-# sys.argv[5] year
-# sys.argv[6] period day
-
-
 # ???
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-# กำหนด path ของ chromedriver.exe
-CHROMEDRIVER_PATH = os.path.join(os.getcwd(), "chromedriver.exe")
 
-# ตั้งค่า Options สำหรับ Cloud (ป้องกัน error ที่เกี่ยวข้องกับ UI)
 chrome_options = Options()
 # chrome_options.add_argument("--headless")  # รันแบบไม่มี UI
 # chrome_options.add_argument("--no-sandbox")
 # chrome_options.add_argument("--disable-dev-shm-usage")
 
-# เปลี่ยนจาก os.getcwd() เป็น path ที่เข้าถึงได้ง่าย
 BASE_SAVE_PATH = os.path.join(os.path.expanduser("~"), "Documents", "YOLOAppData")
-# selected_date = sys.argv[3]  # รับค่า selected_date จาก app.py
-# CSV keep
 name_csv = "CSV_file" 
 name_image = "IMAGE_file"
 download_folder_csv = os.path.join(BASE_SAVE_PATH, name_csv)
@@ -55,7 +38,7 @@ chrome_options.add_experimental_option("prefs", {
     "directory_upgrade": True
 })
 
-service = Service(CHROMEDRIVER_PATH)
+service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 def get_max_pages():

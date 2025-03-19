@@ -62,17 +62,27 @@ def reset_rpa_state():
 
 # Func - DATE for GET tr & td
 def get_date_info(selected_date):
+    # วันที่ 1 ของเดือนที่เลือก
+    start_of_month = selected_date.replace(day=1)
+    start_column = (start_of_month.weekday() + 1) % 7 + 1  # หาตำแหน่งคอลัมน์ของวันที่ 1
+
     day = selected_date.day
-    column = (selected_date.weekday() + 1) % 7 + 1
-    row = ((day + column - 2) // 7) + 1
+    column = (selected_date.weekday() + 1) % 7 + 1  # ตำแหน่งของวันนั้นในสัปดาห์
+    row = ((day + start_column - 2) // 7) + 1  # ปรับค่า row โดยอิงจากวันที่ 1 ของเดือน
+
     return day, column, row
 
-# fday , fcolumn , frow
+# รับค่าจากผู้ใช้
 selected_fday = st.date_input("เลือกวันแรก", datetime.date.today())
 selected_lday = st.date_input("เลือกวันสุดท้าย", datetime.date.today())
+
+# คำนวณจำนวนวัน
 period_day = (selected_lday - selected_fday).days + 1
+
+# ดึงค่าตำแหน่งวันแรกและวันสุดท้าย
 fday, fcolumn, frow = get_date_info(selected_fday)
 lday, lcolumn, lrow = get_date_info(selected_lday)
+
 
 st.write(f"คุณเลือกวันที่: {selected_fday} ถึงวันที่ {selected_lday}")
 # st.write(f"ตำแหน่งในตาราง วันแรก: วันที่ {fday}, แถวที่ {frow}, คอลัมน์ {fcolumn}")
